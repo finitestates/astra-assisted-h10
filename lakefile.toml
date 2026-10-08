@@ -1,6 +1,6 @@
 name = "h10_finite_tests"
 version = "0.1.0"
-defaultTargets = ["FiniteTests", "Audit"]
+defaultTargets = ["FiniteTests", "RationalQueryCompiler", "Audit"]
 
 [[require]]
 name = "mathlib"
@@ -9,6 +9,9 @@ rev = "62bf13aabd0db1bf4cbe2a6ec087c6f7a677f448"
 
 [[lean_lib]]
 name = "FiniteTests"
+
+[[lean_lib]]
+name = "RationalQueryCompiler"
 
 [[lean_lib]]
 name = "Audit"

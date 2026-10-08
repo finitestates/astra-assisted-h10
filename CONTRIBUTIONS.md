@@ -28,6 +28,8 @@ Commit: `fd4aeeb2ee4fc729c18d98444fed42fd0529eeeb`
 Path:
 `preprints/Hilberts-tenth-problem-over-the-rational-numbers-September-24-2026/build/sections/02-reduction.tex`
 
-Only the concluding logical reduction is formalized. Reading the arithmetic
-arguments does not amount to verifying them. The source paper is not included
-in this archive.
+The concluding logical reduction and a generic finite DNF-to-root-query
+compiler are formalized. The paper's arithmetic arguments and its particular
+indexed test generator are not formalized. Reading the arithmetic arguments
+does not amount to verifying them. The source paper is not included in this
+archive.

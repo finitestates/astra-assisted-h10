@@ -1,8 +1,8 @@
 # A checked final reduction for the H10(Q) project
 
-**Status: six Lean theorems compiled successfully. The final conditional logical
-implication is checked; the paper's arithmetic construction is not formalized
-here.**
+**Status: the generic finite rational-query compiler and the conditional final
+reduction compile successfully. The paper's arithmetic construction is not
+formalized here.**
 
 This is a small formalization of the concluding argument in the September 24,
 2026 paper *Hilbert's tenth problem over the rational numbers*, hosted in
@@ -53,6 +53,21 @@ forever on negative ones. `Primcodable` supplies the effective encodings used
 by mathlib's computability framework. These notions are stronger than simply
 asking Lean to assign a truth value using classical logic.
 
+The file [RationalQueryCompiler.lean](RationalQueryCompiler.lean) gives a
+primitive-recursive sparse syntax for rational polynomials and finite DNF
+systems of equations and disequations. It proves that each system is
+satisfiable exactly when one polynomial query emitted by `compile` has a
+rational root. Given a computable root oracle, the compiler decides finite
+systems uniformly. The indexed theorem handles a computable generator on an
+encoded pair `(input, index)`.
+
+| Lean declaration | Meaning |
+| --- | --- |
+| `compile_correct` | DNF satisfiability is equivalent to a root in the finite compiled query list. |
+| `constraintSystem_computable` | A computable rational-root oracle decides any encoded finite constraint system. |
+| `indexed_constraintSystem_computable` | The same decision procedure works uniformly when a computable generator builds the system from `(input, index)`. |
+| `primrec_compile` | The syntactic query compiler is primitive recursive. |
+
 The main theorem has this shape; its parameters are essential:
 
 ```lean
@@ -74,15 +89,15 @@ construct a value of that record for integer and rational polynomial solvability
 | Effective encodings of integer- and rational-solvability instances | Not supplied; `α` and `β` are abstract. |
 | Integer-solvability witness search (`positive_re`) | A hypothesis. The generic witness-search lemma is proved, but polynomial evaluation and tuple enumeration are not instantiated. |
 | Integer undecidability (`source_undecidable`, intended to come from DPRM) | A hypothesis, not a formalized use of the DPRM theorem. |
-| The paper's indexed tests (`interface.test`) | An input to the interface; no polynomial systems or query syntax are built here. |
-| Effective test generation and evaluation (`interface.effective`) | A hypothesis that target computability implies uniform computability of the tests. No rational-query compiler or oracle machine is constructed. |
+| The paper's indexed tests (`interface.test`) | Still an input to the interface. The new compiler handles arbitrary finite DNF constraints, but the paper's particular indexed systems are not constructed here. |
+| Effective test generation and evaluation (`interface.effective`) | Still a hypothesis for the full interface. The compiler proves the generic step from a computable indexed constraint generator and root oracle to computable satisfaction. The paper's generator and its equivalence to each test remain unformalized. |
 | Integer solutions pass every test (`interface.passes`) | A hypothesis; its arithmetic proof remains to be formalized. |
 | Passing all tests yields an integer solution (`interface.complete`) | A hypothesis; the compactness, valuation, elliptic-curve, and height arguments remain to be formalized. |
 
 Although the interface is named “finite tests,” its definition permits any
-natural-number-indexed predicate family with the stated properties. Finiteness
-of the paper's individual constraint systems belongs to the missing arithmetic
-and compiler implementation.
+natural-number-indexed predicate family with the stated properties. The new
+syntax enforces finite DNF constraints; proving that the paper's arithmetic
+tests translate to this syntax remains part of the missing formalization.
 
 Uniformity matters: one effective procedure must handle the pair `(f, n)`.
 Separate decision procedures for each fixed n are insufficient. The paper
@@ -100,9 +115,10 @@ Install Lean's usual `elan` toolchain manager, unzip this directory, and run:
 bash verify.sh
 ```
 
-The script downloads the relevant mathlib cache, builds both Lean files,
-prints theorem types and axiom dependencies, and replays this project's proof
-declarations through Lean's kernel. It requires network access for dependencies.
+The script fetches the relevant mathlib cache, builds `FiniteTests`,
+`RationalQueryCompiler`, and `Audit`, prints theorem types and axiom
+dependencies, and replays both project proof modules through Lean's kernel.
+It requires network access when dependencies or cache files are absent.
 
 Pinned versions:
 
@@ -110,9 +126,9 @@ Pinned versions:
 - mathlib: `62bf13aabd0db1bf4cbe2a6ec087c6f7a677f448`
 - Transitive dependency revisions: `lake-manifest.json`
 
-See [VALIDATION.md](VALIDATION.md) for successful checks, their scope, and the
-restoration of these files after workspace maintenance. No toolchain, dependency
-cache, or generated `.olean` files are bundled.
+See [VALIDATION.md](VALIDATION.md) for the current local verification record
+and the earlier host compatibility note. No toolchain, dependency cache, or
+generated `.olean` files are bundled.
 
 ## Source and credit
 
