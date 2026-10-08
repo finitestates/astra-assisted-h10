@@ -1,0 +1,17 @@
+✔ [857/860] Built FiniteTests (2.0s)
+ℹ [859/860] Built Audit (2.6s)
+info: Audit.lean:7:0: @H10FiniteTests.re_exists_nat_of_computable : ∀ {α : Type u_1} [inst : Primcodable α] (p : α → ℕ → Prop),
+  (ComputablePred fun z => p z.1 z.2) → REPred fun a => ∃ n, p a n
+info: Audit.lean:8:0: @H10FiniteTests.decision_transfer : ∀ {α : Type u_1} [inst : Primcodable α] {β : Type u_2} [inst_1 : Primcodable β]
+  (P : α → Prop) (Q : β → Prop),
+  REPred P → ∀ (interface : H10FiniteTests.FiniteTestInterface P Q), ComputablePred Q → ComputablePred P
+info: Audit.lean:9:0: @H10FiniteTests.undecidable_target : ∀ {α : Type u_1} [inst : Primcodable α] {β : Type u_2} [inst_1 : Primcodable β]
+  (P : α → Prop) (Q : β → Prop),
+  REPred P → ¬ComputablePred P → ∀ (interface : H10FiniteTests.FiniteTestInterface P Q), ¬ComputablePred Q
+info: Audit.lean:10:0: 'H10FiniteTests.re_exists_nat_of_computable' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:11:0: 'H10FiniteTests.failure_iff_not' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:12:0: 'H10FiniteTests.complement_re_of_tests' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:13:0: 'H10FiniteTests.computable_of_re_and_tests' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:14:0: 'H10FiniteTests.decision_transfer' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:15:0: 'H10FiniteTests.undecidable_target' depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (860 jobs).
