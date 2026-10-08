@@ -1,34 +1,36 @@
 # Validation record
 
-The current verification was run locally on 2026-10-08 after adding the
-rational-query compiler.
+The current validation was run locally on 2026-10-08 after adding the finite-
+arity integer-query adapter. Before implementation, `bash verify.sh` also
+passed on the pre-adapter checkout under the same pinned Lean toolchain.
 
 ## Current checks
 
 - `PATH=/tmp/h10-elan/bin:$PATH bash verify.sh`: exit code 0.
-- The successful run followed `lake clean`, so the project modules were rebuilt
-  from clean project outputs.
-- The mathlib cache command found the cache already populated: 841 files were
-decompressed and no files needed downloading.
-- `lake build`: exit code 0; Lake completed 1378 jobs, including cached
-  dependencies, and emitted no warnings in the final run.
-- `Audit.lean` printed the theorem types and axiom dependencies for the original
-  final-reduction results and the new compiler results.
-- `lake env leanchecker FiniteTests` and
-  `lake env leanchecker RationalQueryCompiler`: both exit code 0 with empty
-  output. These checks replay project declarations through Lean's kernel; they
-  are not independent proof checkers and were not run with `--fresh` over all
-  imported declarations.
+- The mathlib cache was already populated: no files needed downloading, and
+  841 files were already decompressed.
+- `lake build`: exit code 0; Lake completed 1380 jobs, including
+  `IntegerQueryAdapter` and the updated `Audit`, with no warnings in the run.
+- `Audit.lean` printed the coefficient-to-integer denotation, positive global
+  denominator, root-preservation equivalence, finite-support bounds, primitive
+  recursive normalization, and conditional root, finite-system, and indexed
+  system oracle-composition theorem types. It also printed their axiom
+  dependencies.
+- `lake env leanchecker FiniteTests`,
+  `lake env leanchecker RationalQueryCompiler`, and
+  `lake env leanchecker IntegerQueryAdapter`: all exited 0 with empty output.
+  These replay project declarations through Lean's kernel; they are not
+  independent proof checkers and were not run with `--fresh` over all imported
+  declarations.
 - No project Lean file contains a `sorry`, custom `axiom`, or `unsafe`
-  declaration. The audited theorems depend on
-  `[propext, Classical.choice, Quot.sound]`, mathlib's standard foundational
-  axioms.
+  declaration. The audited results depend on `[propext, Classical.choice,
+  Quot.sound]`, mathlib's standard foundational axioms.
 
-The theorem audit leaves its assumptions visible. In particular,
-`constraintSystem_computable` and `indexed_constraintSystem_computable` take a
-`ComputablePred RationalPolynomialHasRoot` oracle as a hypothesis. The compiler
-formalizes finite constraint translation; it does not construct the paper's
-indexed tests or prove an unconditional H10(Q) theorem.
+The new oracle theorems retain `ComputablePred IntegerPolynomialHasRationalRoot`
+as an explicit hypothesis. The adapter does not construct an H10(Q) decision
+algorithm, nor does this slice construct the paper's indexed test generator.
+The full verification used the existing Lake outputs; it did not run `lake
+clean` first.
 
 ## Pinned software
 
@@ -42,14 +44,15 @@ indexed tests or prove an unconditional H10(Q) theorem.
 project's `lean-toolchain` selected the pinned Lean version. The current check
 did not use the historical `/proc` compatibility adapter or modify Lean,
 mathlib, the toolchain pin, or dependency revisions. A populated dependency
-checkout and mathlib cache were available for this run; `verify.sh` downloads
-the cache when needed.
+checkout and mathlib cache were available. `verify.sh` fetches the cache when
+needed.
 
 ## Earlier validation artifacts
 
-`validation/previous-build-output.txt` preserves the earlier baseline build
+`validation/previous-build-output.txt` preserves an earlier baseline build
 transcript. It covers only the original `FiniteTests` module and `Audit`; the
-current check above recompiles the updated project including
-`RationalQueryCompiler`. The old host compatibility note described a prior
-execution environment. `host-compat/proc_self_compat.c` remains in the project
-for that historical record and was not needed for this verification.
+current check above builds and checks the project including
+`RationalQueryCompiler` and `IntegerQueryAdapter`. The old host compatibility
+note described a prior execution environment. `host-compat/proc_self_compat.c`
+remains in the project for that historical record and was not needed for this
+verification.

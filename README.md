@@ -1,8 +1,8 @@
 # A checked final reduction for the H10(Q) project
 
-**Status: the generic finite rational-query compiler and the conditional final
-reduction compile successfully. The paper's arithmetic construction is not
-formalized here.**
+**Status: the finite rational-query compiler, finite-arity integer-query
+adapter, and conditional final reduction compile successfully. The paper's
+arithmetic construction is not formalized here.**
 
 This is a small formalization of the concluding argument in the September 24,
 2026 paper *Hilbert's tenth problem over the rational numbers*, hosted in
@@ -68,6 +68,26 @@ encoded pair `(input, index)`.
 | `indexed_constraintSystem_computable` | The same decision procedure works uniformly when a computable generator builds the system from `(input, index)`. |
 | `primrec_compile` | The syntactic query compiler is primitive recursive. |
 
+The file [IntegerQueryAdapter.lean](IntegerQueryAdapter.lean) connects that
+interface to an effectively encoded H10(Q) query with finite arity and integer
+coefficients. It gathers and densely relabels the variables that occur,
+clears coefficient denominators by a positive common multiple, and proves
+that rational roots are preserved. Its factored coefficient code denotes an
+integer, and the output support bound is proved. Given a computable oracle for
+the new integer-query predicate, it derives computability of rational roots,
+finite DNF satisfaction, and any computably generated indexed DNF family.
+These are conditional composition theorems; the oracle and the paper's indexed
+test generator are not constructed here.
+
+| Lean declaration | Meaning |
+| --- | --- |
+| `normalizeToInteger_preserves_roots` | Rational root existence is equivalent before and after finite-support relabeling and denominator clearing. |
+| `normalizeToInteger_support_bounded` | Every normalized variable index is below the query arity. |
+| `primrec_normalizeToInteger` | Query normalization is primitive recursive. |
+| `rationalRoot_computable_of_h10Q` | A computable finite-arity integer H10(Q) oracle decides rational roots for the compiler's source code. |
+| `constraintSystem_computable_of_h10Q` | The same oracle decides encoded finite DNF systems. |
+| `indexed_constraintSystem_computable_of_h10Q` | The oracle handles a computable DNF generator uniformly over `(input, index)`. |
+
 The main theorem has this shape; its parameters are essential:
 
 ```lean
@@ -86,7 +106,7 @@ construct a value of that record for integer and rational polynomial solvability
 
 | Required ingredient | Status here |
 | --- | --- |
-| Effective encodings of integer- and rational-solvability instances | Not supplied; `α` and `β` are abstract. |
+| Effective polynomial query encodings | Supplied for the custom sparse rational syntax and finite-arity integer query. They are not linked to an external solver format. |
 | Integer-solvability witness search (`positive_re`) | A hypothesis. The generic witness-search lemma is proved, but polynomial evaluation and tuple enumeration are not instantiated. |
 | Integer undecidability (`source_undecidable`, intended to come from DPRM) | A hypothesis, not a formalized use of the DPRM theorem. |
 | The paper's indexed tests (`interface.test`) | Still an input to the interface. The new compiler handles arbitrary finite DNF constraints, but the paper's particular indexed systems are not constructed here. |
@@ -116,8 +136,9 @@ bash verify.sh
 ```
 
 The script fetches the relevant mathlib cache, builds `FiniteTests`,
-`RationalQueryCompiler`, and `Audit`, prints theorem types and axiom
-dependencies, and replays both project proof modules through Lean's kernel.
+`RationalQueryCompiler`, `IntegerQueryAdapter`, and `Audit`, prints theorem
+types and axiom dependencies, and replays the project proof modules through
+Lean's kernel.
 It requires network access when dependencies or cache files are absent.
 
 Pinned versions:

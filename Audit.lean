@@ -2,6 +2,7 @@ module
 
 import FiniteTests
 import RationalQueryCompiler
+import IntegerQueryAdapter
 
 /- Inspect theorem types as well as axioms: hypotheses remain hypotheses even
 when the axiom report contains only Lean's standard foundational axioms. -/
@@ -11,6 +12,15 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #check @H10RationalCompiler.compile_correct
 #check @H10RationalCompiler.constraintSystem_computable
 #check @H10RationalCompiler.indexed_constraintSystem_computable
+#check @H10RationalQueryAdapter.integerCoefficientValue_eq_intCast
+#check @H10RationalQueryAdapter.globalDenominator_pos
+#check @H10RationalQueryAdapter.normalizeToInteger_preserves_roots
+#check @H10RationalQueryAdapter.normalizeToInteger_support_bounded
+#check @H10RationalQueryAdapter.variableSupport_index_dense
+#check @H10RationalQueryAdapter.primrec_normalizeToInteger
+#check @H10RationalQueryAdapter.rationalRoot_computable_of_h10Q
+#check @H10RationalQueryAdapter.constraintSystem_computable_of_h10Q
+#check @H10RationalQueryAdapter.indexed_constraintSystem_computable_of_h10Q
 #print axioms H10FiniteTests.re_exists_nat_of_computable
 #print axioms H10FiniteTests.failure_iff_not
 #print axioms H10FiniteTests.complement_re_of_tests
@@ -20,3 +30,10 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #print axioms H10RationalCompiler.compile_correct
 #print axioms H10RationalCompiler.constraintSystem_computable
 #print axioms H10RationalCompiler.indexed_constraintSystem_computable
+#print axioms H10RationalQueryAdapter.integerCoefficientValue_eq_intCast
+#print axioms H10RationalQueryAdapter.normalizeToInteger_support_bounded
+#print axioms H10RationalQueryAdapter.normalizeToInteger_preserves_roots
+#print axioms H10RationalQueryAdapter.primrec_normalizeToInteger
+#print axioms H10RationalQueryAdapter.rationalRoot_computable_of_h10Q
+#print axioms H10RationalQueryAdapter.constraintSystem_computable_of_h10Q
+#print axioms H10RationalQueryAdapter.indexed_constraintSystem_computable_of_h10Q
