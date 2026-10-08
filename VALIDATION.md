@@ -36,6 +36,16 @@ The adapter does not construct an H10(Q) decision algorithm, nor does this
 slice construct the paper's indexed test generator. The full verification used
 the existing Lake outputs; it did not run `lake clean` first.
 
+## GitHub Actions coverage
+
+`.github/workflows/lean.yml` builds the project, runs `leanchecker` on
+`FiniteTests`, `RationalQueryCompiler`, `IntegerQueryAdapter`, and
+`BooleanFormula`, then displays the theorem and axiom report from `Audit.lean`.
+`ci/audit-modules.sh` runs the pinned `axiom-audit` tool once for each of those
+four top-level proof modules. Each run allows only `propext`,
+`Classical.choice`, and `Quot.sound`. `Audit` is built and executed as a report
+module; it contains no proof declarations of its own.
+
 ## Pinned software
 
 - Lean: `leanprover/lean4:v4.35.0-rc4`

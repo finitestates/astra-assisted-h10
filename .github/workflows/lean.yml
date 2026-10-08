@@ -34,11 +34,13 @@ jobs:
           build: true
           use-mathlib-cache: true
           leanchecker: true
-          leanchecker-args: FiniteTests
-          # Fail if any declaration relies on sorry or a nonstandard axiom.
-          axiom-audit: true
-          # The audit selects the defining module, not the declaration namespace.
-          axiom-audit-root: FiniteTests
+          # These are the four modules containing project proof declarations.
+          leanchecker-args: FiniteTests RationalQueryCompiler IntegerQueryAdapter BooleanFormula
+
+      - name: Audit axioms in every proof module
+        env:
+          LEAN_NUM_THREADS: "1"
+        run: bash ci/audit-modules.sh
 
       - name: Display theorem assumptions and axiom audit
         run: lake env lean Audit.lean
