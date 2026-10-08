@@ -12,7 +12,8 @@ permissions:
 
 concurrency:
   group: lean-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Let an active proof check finish when another run is queued.
+  cancel-in-progress: false
 
 jobs:
   verify:
@@ -36,7 +37,8 @@ jobs:
           leanchecker-args: FiniteTests
           # Fail if any declaration relies on sorry or a nonstandard axiom.
           axiom-audit: true
-          axiom-audit-root: H10FiniteTests
+          # The audit selects the defining module, not the declaration namespace.
+          axiom-audit-root: FiniteTests
 
       - name: Display theorem assumptions and axiom audit
         run: lake env lean Audit.lean
