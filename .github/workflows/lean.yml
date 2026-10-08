@@ -34,6 +34,9 @@ jobs:
           use-mathlib-cache: true
           leanchecker: true
           leanchecker-args: FiniteTests
+          # Fail if any declaration relies on sorry or a nonstandard axiom.
+          axiom-audit: true
+          axiom-audit-root: H10FiniteTests
 
       - name: Display theorem assumptions and axiom audit
         run: lake env lean Audit.lean
