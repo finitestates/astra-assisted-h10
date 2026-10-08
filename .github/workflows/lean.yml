@@ -1,0 +1,39 @@
+name: Lean proof verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lean-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build, audit, and kernel-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build Lean project and check proofs
+        uses: leanprover/lean-action@v1
+        env:
+          # Limit peak memory when checking mathlib imports.
+          LEAN_NUM_THREADS: "1"
+        with:
+          auto-config: false
+          build: true
+          use-mathlib-cache: true
+          leanchecker: true
+          leanchecker-args: FiniteTests
+
+      - name: Display theorem assumptions and axiom audit
+        run: lake env lean Audit.lean
