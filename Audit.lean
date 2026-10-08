@@ -3,6 +3,7 @@ module
 import FiniteTests
 import RationalQueryCompiler
 import IntegerQueryAdapter
+import BooleanFormula
 
 /- Inspect theorem types as well as axioms: hypotheses remain hypotheses even
 when the axiom report contains only Lean's standard foundational axioms. -/
@@ -21,6 +22,10 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #check @H10RationalQueryAdapter.rationalRoot_computable_of_h10Q
 #check @H10RationalQueryAdapter.constraintSystem_computable_of_h10Q
 #check @H10RationalQueryAdapter.indexed_constraintSystem_computable_of_h10Q
+#check @H10RationalFormula.formula_to_dnf_correct
+#check @H10RationalFormula.primrec_toDNF
+#check @H10RationalFormula.formulaSatisfies_computable_of_h10Q
+#check @H10RationalFormula.indexed_formulaSatisfies_computable_of_h10Q
 #print axioms H10FiniteTests.re_exists_nat_of_computable
 #print axioms H10FiniteTests.failure_iff_not
 #print axioms H10FiniteTests.complement_re_of_tests
@@ -37,3 +42,7 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #print axioms H10RationalQueryAdapter.rationalRoot_computable_of_h10Q
 #print axioms H10RationalQueryAdapter.constraintSystem_computable_of_h10Q
 #print axioms H10RationalQueryAdapter.indexed_constraintSystem_computable_of_h10Q
+#print axioms H10RationalFormula.formula_to_dnf_correct
+#print axioms H10RationalFormula.primrec_toDNF
+#print axioms H10RationalFormula.formulaSatisfies_computable_of_h10Q
+#print axioms H10RationalFormula.indexed_formulaSatisfies_computable_of_h10Q

@@ -1,8 +1,8 @@
 # A checked final reduction for the H10(Q) project
 
 **Status: the finite rational-query compiler, finite-arity integer-query
-adapter, and conditional final reduction compile successfully. The paper's
-arithmetic construction is not formalized here.**
+adapter, Boolean formula front end, and conditional reductions compile
+successfully. The paper's arithmetic construction is not formalized here.**
 
 This is a small formalization of the concluding argument in the September 24,
 2026 paper *Hilbert's tenth problem over the rational numbers*, hosted in
@@ -79,6 +79,31 @@ finite DNF satisfaction, and any computably generated indexed DNF family.
 These are conditional composition theorems; the oracle and the paper's indexed
 test generator are not constructed here.
 
+The file [BooleanFormula.lean](BooleanFormula.lean) adds formulas over those
+same atoms. Formula codes are postfix token lists with builder functions
+`ConstraintFormula.truth`, `falsity`, `atom`, `negate`, `conjoin`, and
+`disjoin`. They are `Primcodable`; missing operands in a raw token list are
+interpreted as false, and the final stack's top value gives the result (false
+if the stack is empty). Formula meanings use one assignment `Nat → ℚ`.
+`toDNF` handles negation with De Morgan's laws,
+and its result agrees with the existing DNF `Satisfies` predicate, including
+the empty-disjunction and empty-clause cases. The conversion is primitive
+recursive and includes examples for constants, equality, disequality,
+negation, nested negation, De Morgan equivalence, and mixed conjunction and
+disjunction.
+
+| Lean declaration | Meaning |
+| --- | --- |
+| `formula_to_dnf_correct` | Formula satisfiability is equivalent to satisfaction of the converted DNF. |
+| `primrec_toDNF` | The formula-to-DNF conversion is primitive recursive. |
+| `formulaSatisfies_computable_of_h10Q` | A computable integer H10(Q) oracle conditionally decides formula satisfiability. |
+| `indexed_formulaSatisfies_computable_of_h10Q` | The same conditional decision applies uniformly to a computable indexed formula generator. |
+
+These results reuse the current atom, DNF, and integer-query encodings. They
+do not construct an H10(Q) algorithm or the paper's indexed test generator.
+The next implementation slice is the paper-specific finite ground-test
+generator; see [MANIFEST.md](MANIFEST.md) for its scope and acceptance criteria.
+
 | Lean declaration | Meaning |
 | --- | --- |
 | `normalizeToInteger_preserves_roots` | Rational root existence is equivalent before and after finite-support relabeling and denominator clearing. |
@@ -136,9 +161,9 @@ bash verify.sh
 ```
 
 The script fetches the relevant mathlib cache, builds `FiniteTests`,
-`RationalQueryCompiler`, `IntegerQueryAdapter`, and `Audit`, prints theorem
-types and axiom dependencies, and replays the project proof modules through
-Lean's kernel.
+`RationalQueryCompiler`, `IntegerQueryAdapter`, `BooleanFormula`, and `Audit`,
+prints theorem types and axiom dependencies, and replays the project proof
+modules through Lean's kernel.
 It requires network access when dependencies or cache files are absent.
 
 Pinned versions:

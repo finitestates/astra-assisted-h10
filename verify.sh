@@ -8,3 +8,4 @@ lake env lean Audit.lean
 lake env leanchecker FiniteTests
 lake env leanchecker RationalQueryCompiler
 lake env leanchecker IntegerQueryAdapter
+lake env leanchecker BooleanFormula
