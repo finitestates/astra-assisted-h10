@@ -3,10 +3,14 @@
 **Status:** the formalization progress below remains in place: generated
 formulas are proved correct for the coded finite-test semantics, while the
 Skolemization bridge to original prenex axioms and the paper-specific inputs
-and effective instantiation remain open. Given uncertainty about the new
-paper's arithmetic proof, the immediate next slice is a read-only review of
-its highest-leverage mathematical dependencies. Defer further routine compiler
-lemmas until that review gives a useful continue-or-redirect signal.
+and effective instantiation remain open. The targeted mathematical review
+below was completed on 2026-10-09. It found no concrete discrepancy in the
+Section 2 reduction from successful finite tests to an integer root, conditional
+on its arithmetic inputs. The Section 3 Selmer-to-point deduction is also
+correct conditional on its descent lemma and the cited pointwise 2-converse.
+Those external theorem proofs and the Section 4 five-point height estimate
+remain independently unverified. Defer routine compiler work while the next
+slice audits these proof dependencies.
 
 **Repository baseline:** the abstract reduction in `FiniteTests.lean`, rational
 DNF compiler in `RationalQueryCompiler.lean`, finite-arity integer query
@@ -67,54 +71,89 @@ proof, constant-polynomial dispatch, and the arithmetic `passes` and
 `bash ci/audit-modules.sh` both passed with the pinned toolchain. Do not change
 the pinned Lean or mathlib revisions.
 
-## Immediate objective: targeted mathematical risk review
+## Completed checkpoint: targeted mathematical risk review (2026-10-09)
 
-Review the cited Section 3 dependency and the central Section 2 arithmetic
-chain before investing further effort in lower-risk compiler details. This is
-a bounded triage review, not a claim that the H10(Q) theorem has been fully
-verified.
+This was a read-only triage review, not a claim that the H10(Q) theorem has
+been fully verified. No concrete counterexample or internal discrepancy was
+found in the inspected reduction chain. The conditional and unresolved
+boundaries are recorded below.
 
 ### Gate 1: Section 3's Selmer-to-point step
 
-- Read the H10 paper's `par:global-point` argument and Theorem 1.1 of the
-  cited *Pointwise 2-converse* paper. Confirm the exact theorem version and
-  hypotheses used.
-- Check the H10 paper's derivation of full 2-power Selmer corank at most one
-  for `E_l`, and trace how finite `Sha`, the Cassels--Tate pairing, and the
-  Selmer class `gamma = (beta, 1)` yield the required rational point.
-- Distinguish a correct application of the cited theorem from an independent
-  check of that theorem's proof. Record the latter as unresolved unless it is
-  actually reviewed; do not treat citation or Lean encoding as validation.
+**Finding: checked conditionally; cited proof unresolved.** The cited
+September 24, 2026 *Pointwise 2-converse* Theorem 1.1 assumes nonzero rational
+2-torsion and full `2^∞`-Selmer corank in `{0, 1}`. These hypotheses match
+`E_l`. Given the descent lemma's `dim_F2 Sel_2(E_l) = 3`, the Kummer sequence
+gives `rank(E_l) + dim_F2 Sha(E_l)[2] = 1`. If `t` is the corank of
+`Sha(E_l)[2^∞]`, then `t ≤ dim_F2 Sha(E_l)[2]`, so the full Selmer corank is
+at most one. The cited theorem then gives finite `Sha`; the perfect alternating
+Cassels--Tate pairing makes `dim_F2 Sha[2]` even. The displayed equality
+therefore forces rank one and `Sha[2] = 0`, so `gamma = (beta, 1)` comes from
+a rational point with the required `x`-coordinate square class.
+
+This verifies the use of the theorem statement conditional on the descent
+lemma. The proof of the cited theorem has not been independently reviewed, nor
+has every step constructing a parameter satisfying the descent lemma been
+re-proved. A citation or Lean encoding is not validation of those results.
 
 Sources: [pinned H10 Section 3](https://github.com/openai/math/blob/fd4aeeb2ee4fc729c18d98444fed42fd0529eeeb/preprints/Hilberts-tenth-problem-over-the-rational-numbers-September-24-2026/build/sections/03-parity.tex#L2410-L2530)
 and [Pointwise 2-converse](https://github.com/openai/math/blob/main/preprints/A-pointwise-2-converse-for-elliptic-curves-with-rational-two-torsion-September-24-2026/paper.pdf).
 
 ### Gate 2: Section 2's all-tests-to-integer-root implication
 
-- Trace the paper's `complete` argument from success of every finite test to
-  an integer root, following its compactness and nonstandard-model step,
-  local elliptic/logarithm comparisons, uniform height bound, and final
-  ordinary-integer conclusion.
-- Identify the first substantive lemma or dependency whose hypotheses,
-  uniformity, or conclusion cannot be independently checked from the stated
-  argument. Record a concrete gap or counterexample if one is found; otherwise
-  state precisely which parts were checked and which remain open.
+**Finding: conditional reduction inspected; principal arithmetic input
+unresolved.** The compactness construction, valuation coarsening, paired
+elliptic/logarithm comparison, divisibility of the fixed error by the contact
+radical, and final height contradiction are internally consistent on the
+stated inputs. The fixed root error `delta` is reused for every ring element;
+choosing `K` relative to `deg(f)` then gives the uniform linear-in-`B` height
+bound needed to force the root indices into an ordinary finite interval. The
+final use of additivity and injectivity does not require the index map to
+preserve multiplication. No concrete discrepancy was found in this chain.
 
-Source: [pinned Section 2 reduction](https://github.com/openai/math/blob/fd4aeeb2ee4fc729c18d98444fed42fd0529eeeb/preprints/Hilberts-tenth-problem-over-the-rational-numbers-September-24-2026/build/sections/02-reduction.tex).
+The first major unresolved dependency in the core reduction is the five-point
+height estimate in Section 4, which Section 2 needs with constants and
+exponent uniform in the rational point. Its non-CM proof invokes a separate
+result claiming odd-regular Fontaine--Mazur modularity at 2. The H10 paper
+checks the stated representation hypotheses for that invocation, but this
+review did not audit that theorem's proof or the full height argument. The
+prime-pattern sieve supplying the
+ordinary integer model is another required input whose full proof was not
+independently audited. Thus the reduction's conditional logic is not an
+independent verification of the arithmetic theorem.
+
+**Recommendation:** redirect the next effort to an independent review of the
+Section 4 height estimate, beginning with its dyadic modularity dependency,
+and the cited pointwise 2-converse proof. If those checks support continuing,
+the compiler slice below remains appropriately scoped as syntax and finite-test
+semantics work; it must not be presented as validation of the arithmetic
+claims.
+
+Sources: [pinned Section 2 reduction](https://github.com/openai/math/blob/fd4aeeb2ee4fc729c18d98444fed42fd0529eeeb/preprints/Hilberts-tenth-problem-over-the-rational-numbers-September-24-2026/build/sections/02-reduction.tex),
+[pinned Section 4 height argument](https://github.com/openai/math/blob/fd4aeeb2ee4fc729c18d98444fed42fd0529eeeb/preprints/Hilberts-tenth-problem-over-the-rational-numbers-September-24-2026/build/sections/04-height.tex),
+and [Fontaine--Mazur modularity at 2](https://github.com/openai/math/blob/main/preprints/Fontaine-Mazur-modularity-at-the-prime-2-September-23-2026/paper.pdf).
 
 The missing numerical entries for `M` and `D_m` in Section 3 are not by
 themselves a risk gate: the paper gives an existence argument by weak
 approximation, and any fixed lists satisfying the coverage conditions can
 serve. Constructing and formalizing certified choices remains follow-on work.
 
-### Review handoff
+### Next-step handoff
 
-Produce a concise dependency map with each gate marked checked, discrepancy
-found, or unresolved, and give a recommendation to continue the formalization
-as scoped below or redirect effort to a proof gap. Keep manuscript assertions,
-the correctness of their use, and independently verified results distinct.
+The targeted risk review is complete. Before resuming compiler work,
+independently review the cited pointwise 2-converse proof and the Section 4
+five-point height argument, starting with its dyadic modularity dependency.
+Keep the prime-pattern sieve as a separate unresolved input unless it is also
+audited. Record each result as checked, discrepancy found, or unresolved, and
+give a continue-or-redirect recommendation. Keep manuscript assertions, the
+correctness of their use, and independently verified results distinct.
 
-## Follow-on compiler objective (if the risk review supports continuing)
+## Follow-on compiler objective (deferred pending external proof review)
+
+Do not resume this work until the proof-risk review above gives a continue
+signal. The compiler milestone remains independent of the truth of the
+arithmetic `passes` and `complete` obligations, but its completion would not
+resolve the currently unverified theorem dependencies.
 
 Finish the effective finite-test compiler as a paper-facing construction.
 Specify the meaning of a finite test independently of its generated formula,
