@@ -1,23 +1,35 @@
 # Validation record
 
-The current validation was run locally on 2026-10-08 after proving the
-independent finite-test semantics and adding the associated theorem and axiom
-audit entries. The supplied `MANIFEST.md` changes were already in the working
-tree before validation.
+The latest source check was run locally on 2026-10-09 after proving primitive
+recursiveness of the ring-operation formula translator, in addition to the
+query-specific root formula translator and the Skolem term, prefix, and
+substitution components. The earlier full project
+verification below was run on 2026-10-08 after proving the independent
+finite-test semantics and adding its audit entries. The supplied `MANIFEST.md`
+changes were already in the working tree before that verification.
 
 ## Current checks
 
-- Exact command: `PATH=/tmp/h10-elan/bin:$PATH bash verify.sh` (exit code 0,
-  2026-10-08). The mathlib cache was populated: no files were downloaded and
+- Exact latest commands: `lake build FiniteGroundTests` and `lake build Audit`
+  (both exit code 0, 2026-10-09; 1,377 and 1,379 jobs respectively). The
+  updated audit prints `primrec_operationFormula` alongside the Skolem-term,
+  prefix, substitution, and root computability theorems. Its axiom report for
+  the new operation translator stayed within `[propext, Classical.choice,
+  Quot.sound]`. The indexed finite compiler still takes one-item translator
+  computability as a premise.
+  Lean emitted existing linter warnings elsewhere in `FiniteGroundTests.lean`;
+  there were no proof or audit errors.
+- Earlier integrated command: `PATH=/tmp/h10-elan/bin:$PATH bash verify.sh`
+  (exit code 0, 2026-10-08). The mathlib cache was populated: no files were downloaded and
   841 files were already decompressed. `lake build` completed all 1,384 jobs;
   the script then ran `Audit.lean` and `leanchecker` on all five proof modules.
 - `Audit.lean` printed theorem types and axiom dependencies for the independent
   QF interpreter, positive-existential assignment semantics, root semantics,
-  each ring operation, function congruence, the all-tags item semantics
-  theorem, the finite-DNF semantic equivalence, and
-  `makeFiniteTestFormula_correct`. It also confirms that
-  `finiteTestSolvable_computable_of_h10Q` still assumes computability of the
-  instantiated formula generator and the integer H10(Q) root oracle.
+  the root translation's primitive recursiveness, each ring operation,
+  function congruence, the all-tags item semantics theorem, the finite-DNF
+  semantic equivalence, and `makeFiniteTestFormula_correct`. It also confirms
+  that `finiteTestSolvable_computable_of_h10Q` still assumes computability of
+  the instantiated formula generator and the integer H10(Q) root oracle.
 - `lake env leanchecker FiniteTests`, `RationalQueryCompiler`,
   `IntegerQueryAdapter`, `BooleanFormula`, and `FiniteGroundTests` all exited 0
   through `verify.sh`. These replay the named project modules through Lean's
@@ -34,13 +46,14 @@ tree before validation.
   `FiniteGroundTests.lean`; there were no build or kernel-check errors.
 
 The finite-test correctness theorem now targets an independent semantic
-predicate, and no longer assumes a per-item translator theorem. The generic
-root and item translator primitive-recursiveness proofs are still missing, as
-are the recursive ring-theory input and the proof that finite multiplier lists
-with the Section 3 coverage properties exist. The pinned paper lists no
-numerical multiplier table. No H10(Q) decision algorithm or arithmetic
-`passes`/`complete` proof is claimed. Verification used the existing Lake
-outputs; it did not run `lake clean` first.
+predicate, and no longer assumes a per-item translator theorem. The root and
+ring-operation translators are primitive recursive; the full one-item
+translator, recursive ring-theory input, and proof that finite multiplier
+lists with the Section 3 coverage properties exist remain open. The pinned
+paper lists no numerical multiplier table. No H10(Q) decision algorithm or
+arithmetic `passes`/`complete` proof is claimed. The latest checks did not run
+the full `verify.sh` workflow or `lake clean`; the integrated verification
+evidence above predates this change.
 
 ## GitHub Actions coverage
 

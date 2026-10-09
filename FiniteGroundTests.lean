@@ -564,6 +564,176 @@ def skolemizeAxiom (axiomIndex : Nat) (sentence : PrenexAxiom) : Nat × QFCode :
   let state := skolemPrefix axiomIndex sentence.1
   (state.2, sentence.2.map (substituteQFToken state.1))
 
+theorem primrec_variableToken : Primrec variableToken := by
+  unfold variableToken token
+  exact Primrec.pair (Primrec.const 5) Primrec.id
+
+theorem primrec_functionToken : Primrec functionToken := by
+  unfold functionToken token
+  exact Primrec.pair (Primrec.const 7) Primrec.id
+
+theorem primrec_skolemTerm :
+    Primrec fun p : Nat × (Nat × Nat) =>
+      skolemTerm p.1 p.2.1 p.2.2 := by
+  unfold skolemTerm
+  have hrange : Primrec fun p : Nat × (Nat × Nat) => List.range p.2.2 :=
+    Primrec.list_range.comp (Primrec.snd.comp Primrec.snd)
+  have hvariable : Primrec₂ (fun (_ : Nat × (Nat × Nat)) (i : Nat) => variableToken i) := by
+    apply Primrec₂.mk
+    exact primrec_variableToken.comp Primrec.snd
+  have hvariables : Primrec fun p : Nat × (Nat × Nat) =>
+      (List.range p.2.2).map (fun i => variableToken i) :=
+    Primrec.list_map hrange hvariable
+  have hname : Primrec fun p : Nat × (Nat × Nat) => Nat.pair p.1 p.2.1 :=
+    Primrec₂.comp Primrec₂.natPair Primrec.fst (Primrec.fst.comp Primrec.snd)
+  have hsymbolInput : Primrec fun p : Nat × (Nat × Nat) =>
+      (2, (Nat.pair p.1 p.2.1, p.2.2)) :=
+    Primrec.pair (Primrec.const 2) (Primrec.pair hname (Primrec.snd.comp Primrec.snd))
+  have hsymbol : Primrec fun p : Nat × (Nat × Nat) =>
+      functionSymbolCode 2 (Nat.pair p.1 p.2.1) p.2.2 :=
+    primrec_functionSymbolCode.comp hsymbolInput
+  have htoken : Primrec fun p : Nat × (Nat × Nat) => functionToken
+      (functionSymbolCode 2 (Nat.pair p.1 p.2.1) p.2.2) :=
+    primrec_functionToken.comp hsymbol
+  have hsingleton : Primrec fun p : Nat × (Nat × Nat) =>
+      [functionToken (functionSymbolCode 2 (Nat.pair p.1 p.2.1) p.2.2)] :=
+    Primrec₂.comp Primrec.list_cons htoken (Primrec.const [])
+  have hbody : Primrec fun p : Nat × (Nat × Nat) =>
+      (List.range p.2.2).map (fun i => variableToken i) ++
+        [functionToken (functionSymbolCode 2 (Nat.pair p.1 p.2.1) p.2.2)] :=
+    Primrec₂.comp Primrec.list_append hvariables hsingleton
+  exact hbody.of_eq fun p => by cases p with | mk a bc => cases bc; rfl
+
+theorem primrec_skolemPrefixStep :
+    Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      skolemPrefixStep p.1 p.2.1 p.2.2 := by
+  unfold skolemPrefixStep
+  let state := fun p : Nat × ((List TermCode × Nat) × Bool) => p.2.1
+  let terms := fun p : Nat × ((List TermCode × Nat) × Bool) => p.2.1.1
+  let counter := fun p : Nat × ((List TermCode × Nat) × Bool) => p.2.1.2
+  have hstate : Primrec state := Primrec.fst.comp Primrec.snd
+  have hterms : Primrec terms := Primrec.fst.comp hstate
+  have hcounter : Primrec counter := Primrec.snd.comp hstate
+  have hbinder : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      p.2.1.1.length := Primrec.list_length.comp hterms
+  have htoken : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      variableToken p.2.1.2 := primrec_variableToken.comp hcounter
+  have hnested : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      [[variableToken p.2.1.2]] := by
+    have hinner : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+        [variableToken p.2.1.2] := Primrec₂.comp Primrec.list_cons htoken (Primrec.const [])
+    exact Primrec₂.comp Primrec.list_cons hinner (Primrec.const [])
+  have htrueTerms : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      p.2.1.1 ++ [[variableToken p.2.1.2]] := Primrec₂.comp Primrec.list_append hterms hnested
+  have htrueCount : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      p.2.1.2 + 1 := Primrec.succ.comp hcounter
+  have htrue : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      (p.2.1.1 ++ [[variableToken p.2.1.2]], p.2.1.2 + 1) :=
+    Primrec.pair htrueTerms htrueCount
+  have hskolemInput : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      (p.1, (p.2.1.1.length, p.2.1.2)) :=
+    Primrec.pair Primrec.fst (Primrec.pair hbinder hcounter)
+  have hskolem : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      skolemTerm p.1 p.2.1.1.length p.2.1.2 :=
+    primrec_skolemTerm.comp hskolemInput
+  have hskolemSingleton : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      [skolemTerm p.1 p.2.1.1.length p.2.1.2] :=
+    Primrec₂.comp Primrec.list_cons hskolem (Primrec.const [])
+  have hfalseTerms : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      p.2.1.1 ++ [skolemTerm p.1 p.2.1.1.length p.2.1.2] :=
+    Primrec₂.comp Primrec.list_append hterms hskolemSingleton
+  have hfalse : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) =>
+      (p.2.1.1 ++ [skolemTerm p.1 p.2.1.1.length p.2.1.2], p.2.1.2) :=
+    Primrec.pair hfalseTerms hcounter
+  have hcondition : Primrec fun p : Nat × ((List TermCode × Nat) × Bool) => p.2.2 :=
+    Primrec.snd.comp (Primrec.snd.comp Primrec.id)
+  exact (Primrec.cond hcondition htrue hfalse).of_eq fun p => by
+    simp [state, terms, counter]
+
+theorem primrec_skolemPrefix :
+    Primrec fun p : Nat × List Bool => skolemPrefix p.1 p.2 := by
+  unfold skolemPrefix
+  have hstepInput : Primrec fun z : (Nat × List Bool) × ((List TermCode × Nat) × Bool) =>
+      (z.1.1, z.2) := Primrec.pair
+        (Primrec.fst.comp (Primrec.fst.comp Primrec.id)) Primrec.snd
+  have hstep : Primrec₂ (fun (p : Nat × List Bool)
+      (stateBool : (List TermCode × Nat) × Bool) =>
+        skolemPrefixStep p.1 stateBool.1 stateBool.2) :=
+    Primrec₂.mk (primrec_skolemPrefixStep.comp hstepInput)
+  have hfold : Primrec fun p : Nat × List Bool =>
+      (p.2.foldl (skolemPrefixStep p.1) ([], 0)) :=
+    Primrec.list_foldl Primrec.snd (Primrec.const ([], 0)) hstep
+  exact hfold.of_eq fun _ => rfl
+
+theorem primrec_substituteTerm :
+    Primrec fun p : List TermCode × TermCode => substituteTerm p.1 p.2 := by
+  unfold substituteTerm
+  have hpartTag : Primrec₂ (fun (_ : List TermCode × TermCode)
+      (part : TermToken) => part.1) := by
+    apply Primrec₂.mk
+    exact Primrec.fst.comp Primrec.snd
+  have htag₂ : Primrec₂ (fun (p : List TermCode × TermCode) (part : TermToken) =>
+      decide (part.1 = 5)) := (Primrec.eq.comp₂ hpartTag (Primrec₂.const 5)).decide
+  have htag : Primrec fun p : (List TermCode × TermCode) × TermToken =>
+      decide (p.2.1 = 5) := Primrec₂.uncurry.mpr htag₂
+  have hget : Primrec fun p : (List TermCode × TermCode) × TermToken =>
+      (p.1.1[p.2.2]?).getD zeroOpenTerm := by
+    have hlistGetD : Primrec₂ (fun (l : List TermCode) (i : Nat) =>
+        l.getD i zeroOpenTerm) := Primrec.list_getD zeroOpenTerm
+    have hlookup : Primrec fun p : (List TermCode × TermCode) × TermToken =>
+        List.getD p.1.1 p.2.2 zeroOpenTerm :=
+      Primrec₂.comp (f := fun (l : List TermCode) (i : Nat) =>
+          List.getD l i zeroOpenTerm) hlistGetD
+        (Primrec.fst.comp Primrec.fst) (Primrec.snd.comp Primrec.snd)
+    exact hlookup.of_eq fun _ => by
+      simp [List.getD_eq_getElem?_getD]
+  have hkeep : Primrec fun p : (List TermCode × TermCode) × TermToken => [p.2] := by
+    exact Primrec₂.comp Primrec.list_cons Primrec.snd (Primrec.const [])
+  have hstep : Primrec₂ (fun (p : List TermCode × TermCode) (part : TermToken) =>
+      if part.1 == 5 then (p.1[part.2]?).getD zeroOpenTerm else [part]) := by
+    apply Primrec₂.mk
+    have hcondition₂ : Primrec₂ (fun (_ : List TermCode × TermCode)
+        (part : TermToken) => decide (part.1 = 5)) :=
+      (Primrec.eq.comp₂ hpartTag (Primrec₂.const 5)).decide
+    have hcondition : Primrec fun z : (List TermCode × TermCode) × TermToken =>
+        decide (z.2.1 = 5) := Primrec₂.uncurry.mpr hcondition₂
+    exact (Primrec.cond hcondition hget hkeep).of_eq fun _ => by simp
+  exact Primrec.list_flatMap Primrec.snd hstep
+
+theorem primrec_substituteQFToken :
+    Primrec fun p : List TermCode × QFToken => substituteQFToken p.1 p.2 := by
+  unfold substituteQFToken
+  have htag : Primrec₂ (fun (p : List TermCode) (q : QFToken) => q.1) := by
+    apply Primrec₂.mk
+    exact Primrec.fst.comp Primrec.snd
+  have hEq₂ : Primrec₂ (fun (p : List TermCode) (q : QFToken) => decide (q.1 = 2)) :=
+    (Primrec.eq.comp₂ htag (Primrec₂.const 2)).decide
+  have hEq₃ : Primrec₂ (fun (p : List TermCode) (q : QFToken) => decide (q.1 = 3)) :=
+    (Primrec.eq.comp₂ htag (Primrec₂.const 3)).decide
+  have hEq2 : Primrec fun p : List TermCode × QFToken => decide (p.2.1 = 2) :=
+    Primrec₂.uncurry.mpr hEq₂
+  have hEq3 : Primrec fun p : List TermCode × QFToken => decide (p.2.1 = 3) :=
+    Primrec₂.uncurry.mpr hEq₃
+  have hcondition : Primrec fun p : List TermCode × QFToken =>
+      p.2.1 == 2 || p.2.1 == 3 := by
+    exact (Primrec.cond hEq2 (Primrec.const true) hEq3).of_eq fun p => by
+      cases h2 : p.2.1 == 2 <;> cases h3 : p.2.1 == 3 <;>
+        simp_all [beq_iff_eq]
+  have hleftInput : Primrec fun p : List TermCode × QFToken =>
+      (p.1, p.2.2.1) :=
+    Primrec.pair Primrec.fst (Primrec.fst.comp (Primrec.snd.comp Primrec.snd))
+  have hleft : Primrec fun p : List TermCode × QFToken =>
+      substituteTerm p.1 p.2.2.1 := primrec_substituteTerm.comp hleftInput
+  have hrightInput : Primrec fun p : List TermCode × QFToken =>
+      (p.1, p.2.2.2) :=
+    Primrec.pair Primrec.fst (Primrec.snd.comp (Primrec.snd.comp Primrec.snd))
+  have hright : Primrec fun p : List TermCode × QFToken =>
+      substituteTerm p.1 p.2.2.2 := primrec_substituteTerm.comp hrightInput
+  have hsub : Primrec fun p : List TermCode × QFToken =>
+      (p.2.1, (substituteTerm p.1 p.2.2.1, substituteTerm p.1 p.2.2.2)) :=
+    Primrec.pair (Primrec.fst.comp Primrec.snd) (Primrec.pair hleft hright)
+  exact (Primrec.cond hcondition hsub Primrec.snd).of_eq fun _ => by simp
+
 /-! ## Quantifier-free translation -/
 
 def polynomialNeg (p : PolynomialCode) : PolynomialCode :=
@@ -628,10 +798,17 @@ def qfToFormula (atomPolynomial : TermCode → PolynomialCode) (q : QFCode) :
 def rootVariableLabel (q : IntegerPolynomialQuery) (i : Nat) : Nat :=
   if i < q.1 then termLabel (inputTerm i) else termLabel zeroTerm
 
-def rootPolynomial (q : IntegerPolynomialQuery) : PolynomialCode :=
-  q.2.map fun t =>
-    ([(integerCoefficientAsInt t.1, 0)],
+/-- Expand the natural scale in an integer coefficient as a finite sum of
+identical rational-polynomial terms. This keeps the root translation
+primitive recursive without multiplying encoded `Int` values. -/
+def rootPolynomialTerm (q : IntegerPolynomialQuery) (t : IntegerTermCode) :
+    PolynomialCode :=
+  (List.range t.1.2).map fun _ =>
+    (t.1.1.map fun factor => (factor, 0),
       t.2.map fun ie => (rootVariableLabel q ie.1, ie.2))
+
+def rootPolynomial (q : IntegerPolynomialQuery) : PolynomialCode :=
+  q.2.flatMap (rootPolynomialTerm q)
 
 def rootQueryFormula (q : IntegerPolynomialQuery) : ConstraintFormula :=
   ConstraintFormula.conjoin
@@ -680,22 +857,40 @@ theorem rootPolynomialValue_eq_integerPolynomialValue
         H10RationalQueryAdapter.finiteVariableValue q.1 values ie.1 ^ ie.2 *
           H10RationalQueryAdapter.integerMonomialValue q.1 values rest
       rw [hvars ie.1, ih]
-  have hcoeff (c : IntegerCoefficientCode) :
-      coeffValue [(integerCoefficientAsInt c, 0)] =
-        H10RationalQueryAdapter.integerCoefficientValue c := by
-    rw [H10RationalQueryAdapter.integerCoefficientValue_eq_intCast]
-    simp [coeffValue, coeffAtomValue, H10RationalQueryAdapter.integerCoefficientAsInt]
+  have hcoeff (factors : List Int) :
+      coeffValue (factors.map fun factor => (factor, 0)) =
+        (factors.map (Int.cast : Int → ℚ)).prod := by
+    simp only [coeffValue, List.map_map]
+    apply congrArg List.prod
+    apply List.map_congr_left
+    intro factor _
+    simp [coeffAtomValue]
+  have hterm (t : IntegerTermCode) :
+      ((rootPolynomialTerm q t).map (termValue x)).sum =
+        H10RationalQueryAdapter.integerTermValue q.1 values t := by
+    simp only [rootPolynomialTerm, List.map_map]
+    change (List.map (fun (_ : Nat) =>
+      termValue x
+        (t.1.1.map (fun factor => (factor, 0)),
+          t.2.map (fun ie => (rootVariableLabel q ie.1, ie.2))))
+        (List.range t.1.2)).sum =
+      H10RationalQueryAdapter.integerTermValue q.1 values t
+    rw [List.map_const']
+    simp only [List.length_range, List.sum_replicate, termValue]
+    rw [hcoeff t.1.1, hmonomial t.2]
+    simp only [H10RationalQueryAdapter.integerTermValue,
+      H10RationalQueryAdapter.integerCoefficientValue,
+      H10RationalQueryAdapter.integerMonomialValue]
+    ring
   unfold rootPolynomial
-  simp only [polynomialValue, H10RationalQueryAdapter.integerPolynomialValue,
-    List.map_map]
-  apply congrArg List.sum
-  apply List.map_congr_left
-  intro t ht
-  change coeffValue [(integerCoefficientAsInt t.1, 0)] *
-      monomialValue x (t.2.map fun ie => (rootVariableLabel q ie.1, ie.2)) =
-    H10RationalQueryAdapter.integerCoefficientValue t.1 *
-      H10RationalQueryAdapter.integerMonomialValue q.1 values t.2
-  rw [hcoeff t.1, hmonomial t.2]
+  change ((q.2.flatMap (rootPolynomialTerm q)).map (termValue x)).sum =
+    (q.2.map (H10RationalQueryAdapter.integerTermValue q.1 values)).sum
+  induction q.2 with
+  | nil => rfl
+  | cons t rest ih =>
+    simp only [List.flatMap_cons, List.map_append, List.sum_append,
+      List.map_cons, List.sum_cons]
+    rw [hterm t, ih]
 
 theorem rootQueryFormula_toDNF (q : IntegerPolynomialQuery) :
     toDNF (rootQueryFormula q) =
@@ -907,18 +1102,23 @@ def functionInputsEqualFormula (left right : List GroundTermCode) :
 
 def operationFormula (tag : Nat) (terms : List GroundTermCode) : ConstraintFormula :=
   if tag == 3 && terms.length == 2 then
-    let left := groundValuePolynomial terms[0]!
-    let right := groundValuePolynomial terms[1]!
-    let result := groundValuePolynomial (additionTerm terms[0]! terms[1]!)
+    let leftTerm := terms.getD 0 zeroTerm
+    let rightTerm := terms.getD 1 zeroTerm
+    let left := groundValuePolynomial leftTerm
+    let right := groundValuePolynomial rightTerm
+    let result := groundValuePolynomial (additionTerm leftTerm rightTerm)
     ConstraintFormula.atom (false, polynomialDifference result (polyAdd left right))
   else if tag == 4 && terms.length == 2 then
-    let left := groundValuePolynomial terms[0]!
-    let right := groundValuePolynomial terms[1]!
-    let result := groundValuePolynomial (multiplicationTerm terms[0]! terms[1]!)
+    let leftTerm := terms.getD 0 zeroTerm
+    let rightTerm := terms.getD 1 zeroTerm
+    let left := groundValuePolynomial leftTerm
+    let right := groundValuePolynomial rightTerm
+    let result := groundValuePolynomial (multiplicationTerm leftTerm rightTerm)
     ConstraintFormula.atom (false, polynomialDifference result (polyMul left right))
   else if tag == 5 && terms.length == 1 then
-    let value := groundValuePolynomial terms[0]!
-    let result := groundValuePolynomial (negationTerm terms[0]!)
+    let argument := terms.getD 0 zeroTerm
+    let value := groundValuePolynomial argument
+    let result := groundValuePolynomial (negationTerm argument)
     ConstraintFormula.atom (false, polyAdd result value)
   else ConstraintFormula.truth
 
@@ -1772,6 +1972,274 @@ theorem primrec_formulaDisjoin : Primrec₂ ConstraintFormula.disjoin := by
   exact Primrec₂.comp Primrec.list_append hfirst
     (Primrec.const [FormulaToken.disjunction])
 
+theorem primrec_groundValuePolynomial : Primrec groundValuePolynomial := by
+  unfold groundValuePolynomial
+  exact primrec_polyVar.comp primrec_termLabel
+
+theorem primrec_polynomialDifference : Primrec₂ polynomialDifference := by
+  apply Primrec₂.mk
+  unfold polynomialDifference polynomialNeg
+  have hneg : Primrec fun p : PolynomialCode × PolynomialCode =>
+      polyMul (polyConst [(-1, 0)]) p.2 :=
+    Primrec₂.comp primrec_polyMul (Primrec.const (polyConst [(-1, 0)])) Primrec.snd
+  exact Primrec₂.comp primrec_polyAdd Primrec.fst hneg
+
+theorem primrec_additionTerm : Primrec₂ additionTerm := by
+  unfold additionTerm
+  have hargs : Primrec fun p : GroundTermCode × GroundTermCode => [p.1, p.2] := by
+    exact Primrec₂.comp Primrec.list_cons Primrec.fst
+      (Primrec₂.comp Primrec.list_cons Primrec.snd (Primrec.const []))
+  have hinput : Primrec fun p : GroundTermCode × GroundTermCode =>
+      (builtinAddSymbol, [p.1, p.2]) :=
+    Primrec.pair (Primrec.const builtinAddSymbol) hargs
+  exact (Primrec₂.uncurry.mpr primrec_applicationTerm).comp hinput
+
+theorem primrec_multiplicationTerm : Primrec₂ multiplicationTerm := by
+  unfold multiplicationTerm
+  have hargs : Primrec fun p : GroundTermCode × GroundTermCode => [p.1, p.2] := by
+    exact Primrec₂.comp Primrec.list_cons Primrec.fst
+      (Primrec₂.comp Primrec.list_cons Primrec.snd (Primrec.const []))
+  have hinput : Primrec fun p : GroundTermCode × GroundTermCode =>
+      (builtinMulSymbol, [p.1, p.2]) :=
+    Primrec.pair (Primrec.const builtinMulSymbol) hargs
+  exact (Primrec₂.uncurry.mpr primrec_applicationTerm).comp hinput
+
+theorem primrec_negationTerm : Primrec negationTerm := by
+  unfold negationTerm
+  have hargs : Primrec fun t : GroundTermCode => [t] :=
+    Primrec₂.comp Primrec.list_cons Primrec.id (Primrec.const [])
+  have hinput : Primrec fun t : GroundTermCode => (builtinNegSymbol, [t]) :=
+    Primrec.pair (Primrec.const builtinNegSymbol) hargs
+  exact (Primrec₂.uncurry.mpr primrec_applicationTerm).comp hinput
+
+set_option maxHeartbeats 1000000 in
+theorem primrec_operationFormula : Primrec₂ operationFormula := by
+  apply Primrec₂.uncurry.mp
+  unfold operationFormula
+  let P := Nat × List GroundTermCode
+  have htagEq (n : Nat) : PrimrecPred fun p : P => p.1 = n :=
+    PrimrecRel.comp Primrec.eq Primrec.fst (Primrec.const n)
+  have hlengthEq (n : Nat) : PrimrecPred fun p : P => p.2.length = n :=
+    PrimrecRel.comp Primrec.eq (Primrec.list_length.comp Primrec.snd)
+      (Primrec.const n)
+  have hleft : Primrec fun p : P => p.2.getD 0 zeroTerm :=
+    Primrec₂.comp (f := fun (terms : List GroundTermCode) (i : Nat) =>
+      terms.getD i zeroTerm) (Primrec.list_getD zeroTerm) Primrec.snd
+      (Primrec.const 0)
+  have hright : Primrec fun p : P => p.2.getD 1 zeroTerm :=
+    Primrec₂.comp (f := fun (terms : List GroundTermCode) (i : Nat) =>
+      terms.getD i zeroTerm) (Primrec.list_getD zeroTerm) Primrec.snd
+      (Primrec.const 1)
+  have hleftValue : Primrec fun p : P => groundValuePolynomial (p.2.getD 0 zeroTerm) :=
+    primrec_groundValuePolynomial.comp hleft
+  have hrightValue : Primrec fun p : P => groundValuePolynomial (p.2.getD 1 zeroTerm) :=
+    primrec_groundValuePolynomial.comp hright
+  have hargs : Primrec fun p : P => [p.2.getD 0 zeroTerm, p.2.getD 1 zeroTerm] := by
+    exact Primrec₂.comp Primrec.list_cons hleft
+      (Primrec₂.comp Primrec.list_cons hright (Primrec.const []))
+  have haddTerm : Primrec fun p : P =>
+      additionTerm (p.2.getD 0 zeroTerm) (p.2.getD 1 zeroTerm) := by
+    unfold additionTerm
+    exact primrec_applicationTerm.comp
+      (Primrec.pair (Primrec.const builtinAddSymbol) hargs)
+  have hmulTerm : Primrec fun p : P =>
+      multiplicationTerm (p.2.getD 0 zeroTerm) (p.2.getD 1 zeroTerm) := by
+    unfold multiplicationTerm
+    exact primrec_applicationTerm.comp
+      (Primrec.pair (Primrec.const builtinMulSymbol) hargs)
+  have hnegTerm : Primrec fun p : P => negationTerm (p.2.getD 0 zeroTerm) :=
+    primrec_negationTerm.comp hleft
+  have haddResult : Primrec fun p : P =>
+      groundValuePolynomial (additionTerm (p.2.getD 0 zeroTerm)
+        (p.2.getD 1 zeroTerm)) := primrec_groundValuePolynomial.comp haddTerm
+  have hmulResult : Primrec fun p : P =>
+      groundValuePolynomial (multiplicationTerm (p.2.getD 0 zeroTerm)
+        (p.2.getD 1 zeroTerm)) := primrec_groundValuePolynomial.comp hmulTerm
+  have hnegResult : Primrec fun p : P =>
+      groundValuePolynomial (negationTerm (p.2.getD 0 zeroTerm)) :=
+    primrec_groundValuePolynomial.comp hnegTerm
+  have haddPolynomial : Primrec fun p : P =>
+      polyAdd (groundValuePolynomial (p.2.getD 0 zeroTerm))
+        (groundValuePolynomial (p.2.getD 1 zeroTerm)) :=
+    Primrec₂.comp primrec_polyAdd hleftValue hrightValue
+  have hmulPolynomial : Primrec fun p : P =>
+      polyMul (groundValuePolynomial (p.2.getD 0 zeroTerm))
+        (groundValuePolynomial (p.2.getD 1 zeroTerm)) :=
+    Primrec₂.comp primrec_polyMul hleftValue hrightValue
+  have haddDiff : Primrec fun p : P =>
+      polynomialDifference
+        (groundValuePolynomial (additionTerm (p.2.getD 0 zeroTerm)
+          (p.2.getD 1 zeroTerm)))
+        (polyAdd (groundValuePolynomial (p.2.getD 0 zeroTerm))
+          (groundValuePolynomial (p.2.getD 1 zeroTerm))) :=
+    Primrec₂.comp primrec_polynomialDifference haddResult haddPolynomial
+  have hmulDiff : Primrec fun p : P =>
+      polynomialDifference
+        (groundValuePolynomial (multiplicationTerm (p.2.getD 0 zeroTerm)
+          (p.2.getD 1 zeroTerm)))
+        (polyMul (groundValuePolynomial (p.2.getD 0 zeroTerm))
+          (groundValuePolynomial (p.2.getD 1 zeroTerm))) :=
+    Primrec₂.comp primrec_polynomialDifference hmulResult hmulPolynomial
+  have hnegSum : Primrec fun p : P =>
+      polyAdd (groundValuePolynomial (negationTerm (p.2.getD 0 zeroTerm)))
+        (groundValuePolynomial (p.2.getD 0 zeroTerm)) :=
+    Primrec₂.comp primrec_polyAdd hnegResult hleftValue
+  let plusFormula : P → ConstraintFormula := fun p => ConstraintFormula.atom (false,
+      polynomialDifference
+        (groundValuePolynomial (additionTerm (p.2.getD 0 zeroTerm)
+          (p.2.getD 1 zeroTerm)))
+        (polyAdd (groundValuePolynomial (p.2.getD 0 zeroTerm))
+          (groundValuePolynomial (p.2.getD 1 zeroTerm))))
+  have hplus : Primrec plusFormula := by
+    unfold plusFormula
+    exact primrec_formulaAtom.comp (Primrec.pair (Primrec.const false) haddDiff)
+  let timesFormula : P → ConstraintFormula := fun p => ConstraintFormula.atom (false,
+      polynomialDifference
+        (groundValuePolynomial (multiplicationTerm (p.2.getD 0 zeroTerm)
+          (p.2.getD 1 zeroTerm)))
+        (polyMul (groundValuePolynomial (p.2.getD 0 zeroTerm))
+          (groundValuePolynomial (p.2.getD 1 zeroTerm))))
+  have htimes : Primrec timesFormula := by
+    unfold timesFormula
+    exact primrec_formulaAtom.comp (Primrec.pair (Primrec.const false) hmulDiff)
+  let minusFormula : P → ConstraintFormula := fun p => ConstraintFormula.atom (false,
+      polyAdd (groundValuePolynomial (negationTerm (p.2.getD 0 zeroTerm)))
+        (groundValuePolynomial (p.2.getD 0 zeroTerm)))
+  have hminus : Primrec minusFormula := by
+    unfold minusFormula
+    exact primrec_formulaAtom.comp (Primrec.pair (Primrec.const false) hnegSum)
+  have htruth : Primrec fun _ : P => ConstraintFormula.truth := Primrec.const _
+  let negBranch : P → ConstraintFormula := fun p =>
+      if p.1 = 5 then
+        (if p.2.length = 1 then minusFormula p
+          else ConstraintFormula.truth)
+      else ConstraintFormula.truth
+  have hnegBranch : Primrec negBranch := by
+    unfold negBranch
+    exact Primrec.ite (htagEq 5) (Primrec.ite (hlengthEq 1) hminus htruth) htruth
+  let mulBranch : P → ConstraintFormula := fun p =>
+      if p.1 = 4 then
+        (if p.2.length = 2 then timesFormula p else negBranch p)
+      else negBranch p
+  have hmulBranch : Primrec mulBranch := by
+    unfold mulBranch
+    exact Primrec.ite (htagEq 4) (Primrec.ite (hlengthEq 2) htimes hnegBranch) hnegBranch
+  let plusBranch : P → ConstraintFormula := fun p =>
+      if p.2.length = 2 then plusFormula p else mulBranch p
+  have hplusBranch : Primrec plusBranch := by
+    unfold plusBranch
+    exact Primrec.ite (hlengthEq 2) hplus hmulBranch
+  let result : P → ConstraintFormula := fun p =>
+      if p.1 = 3 then plusBranch p else mulBranch p
+  have hresult : Primrec result := by
+    unfold result
+    exact Primrec.ite (htagEq 3) hplusBranch hmulBranch
+  exact hresult.of_eq fun p => by
+    rcases p with ⟨tag, terms⟩
+    by_cases htag3 : tag = 3
+    · subst tag
+      by_cases hlength2 : terms.length = 2
+      · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+          minusFormula, hlength2, beq_iff_eq]
+      · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+          minusFormula, hlength2, beq_iff_eq]
+    · by_cases htag4 : tag = 4
+      · subst tag
+        by_cases hlength2 : terms.length = 2
+        · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+            minusFormula, hlength2, beq_iff_eq]
+        · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+            minusFormula, hlength2, beq_iff_eq]
+      · by_cases htag5 : tag = 5
+        · subst tag
+          by_cases hlength1 : terms.length = 1
+          · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+              minusFormula, hlength1, beq_iff_eq]
+          · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+              minusFormula, hlength1, beq_iff_eq]
+        · simp [result, plusBranch, mulBranch, negBranch, plusFormula, timesFormula,
+            minusFormula, htag3, htag4, htag5, beq_iff_eq]
+
+theorem primrec_rootVariableLabel :
+    Primrec fun p : IntegerPolynomialQuery × Nat =>
+      rootVariableLabel p.1 p.2 := by
+  unfold rootVariableLabel
+  have hindex : Primrec₂ (fun (_ : IntegerPolynomialQuery) (i : Nat) => i) := by
+    apply Primrec₂.mk
+    exact Primrec.snd
+  have harity : Primrec₂ (fun (q : IntegerPolynomialQuery) (_ : Nat) => q.1) := by
+    apply Primrec₂.mk
+    exact Primrec.fst.comp Primrec.fst
+  have hcondition₂ : Primrec₂ (fun (q : IntegerPolynomialQuery) (i : Nat) =>
+      decide (i < q.1)) :=
+    (Primrec.nat_lt.comp₂ hindex harity).decide
+  have hcondition : Primrec fun p : IntegerPolynomialQuery × Nat =>
+      decide (p.2 < p.1.1) := Primrec₂.uncurry.mpr hcondition₂
+  have hinput : Primrec fun p : IntegerPolynomialQuery × Nat =>
+      inputTerm p.2 := by
+    unfold inputTerm
+    exact Primrec₂.comp Primrec₂.natPair (Primrec.const 0)
+      (Primrec.succ.comp (Primrec.succ.comp Primrec.snd))
+  have htrue : Primrec fun p : IntegerPolynomialQuery × Nat =>
+      termLabel (inputTerm p.2) := primrec_termLabel.comp hinput
+  exact (Primrec.cond hcondition htrue
+    (Primrec.const (termLabel zeroTerm))).of_eq fun p => by
+      simp
+
+theorem primrec_rootPolynomialTerm :
+    Primrec fun p : IntegerPolynomialQuery × IntegerTermCode =>
+      rootPolynomialTerm p.1 p.2 := by
+  unfold rootPolynomialTerm
+  have hcoefficientEntry :
+      Primrec₂ (fun (_ : IntegerPolynomialQuery × IntegerTermCode)
+        (factor : Int) => (factor, (0 : Nat))) := by
+    apply Primrec₂.mk
+    exact Primrec.pair Primrec.snd (Primrec.const 0)
+  have hcoefficients : Primrec fun p : IntegerPolynomialQuery × IntegerTermCode =>
+      p.2.1.1.map (fun factor => (factor, (0 : Nat))) :=
+    Primrec.list_map
+      (Primrec.fst.comp (Primrec.fst.comp Primrec.snd)) hcoefficientEntry
+  have hmonomialEntry :
+      Primrec₂ (fun (p : IntegerPolynomialQuery × IntegerTermCode)
+        (ie : Nat × Nat) =>
+          (rootVariableLabel p.1 ie.1, ie.2)) := by
+    apply Primrec₂.mk
+    exact Primrec.pair
+      (primrec_rootVariableLabel.comp <| Primrec.pair
+        (Primrec.fst.comp Primrec.fst) (Primrec.fst.comp Primrec.snd))
+      (Primrec.snd.comp Primrec.snd)
+  have hmonomial : Primrec fun p : IntegerPolynomialQuery × IntegerTermCode =>
+      p.2.2.map (fun ie => (rootVariableLabel p.1 ie.1, ie.2)) :=
+    Primrec.list_map (Primrec.snd.comp Primrec.snd) hmonomialEntry
+  have hterm : Primrec fun p : IntegerPolynomialQuery × IntegerTermCode =>
+      (p.2.1.1.map (fun factor => (factor, (0 : Nat))),
+        p.2.2.map (fun ie => (rootVariableLabel p.1 ie.1, ie.2))) :=
+    Primrec.pair hcoefficients hmonomial
+  have hscale : Primrec fun p : IntegerPolynomialQuery × IntegerTermCode =>
+      List.range p.2.1.2 :=
+    Primrec.list_range.comp (Primrec.snd.comp (Primrec.fst.comp Primrec.snd))
+  have hcopy : Primrec₂ (fun (p : IntegerPolynomialQuery × IntegerTermCode)
+      (_ : Nat) =>
+        (p.2.1.1.map (fun factor => (factor, (0 : Nat))),
+          p.2.2.map (fun ie => (rootVariableLabel p.1 ie.1, ie.2)))) := by
+    apply Primrec₂.mk
+    exact hterm.comp Primrec.fst
+  exact Primrec.list_map hscale hcopy
+
+theorem primrec_rootPolynomial : Primrec rootPolynomial := by
+  unfold rootPolynomial
+  exact Primrec.list_flatMap Primrec.snd primrec_rootPolynomialTerm
+
+theorem primrec_rootQueryFormula : Primrec rootQueryFormula := by
+  unfold rootQueryFormula
+  have hroot : Primrec fun q : IntegerPolynomialQuery =>
+      ConstraintFormula.atom (false, rootPolynomial q) := by
+    exact primrec_formulaAtom.comp
+      (Primrec.pair (Primrec.const false) primrec_rootPolynomial)
+  exact Primrec₂.comp primrec_formulaConjoin hroot
+    (Primrec.const (ConstraintFormula.atom
+      (false, polyVar (termLabel zeroTerm))))
+
 theorem primrec_dnfClauseFormula : Primrec dnfClauseFormula := by
   unfold dnfClauseFormula
   have hstepFn : Primrec fun z : List Atom × (Atom × ConstraintFormula) =>
@@ -1806,13 +2274,11 @@ def makeFiniteTestFormula (axioms : Nat → PrenexAxiom)
     (phi : PositiveExistential) (q : IntegerPolynomialQuery) (n : Nat) :
     ConstraintFormula := dnfFormula (finiteTestDNF axioms phi q n)
 
-/-- Once the root fragment and one-item translator are primitive recursive,
-enumerating any finite prefix and serializing its DNF are primitive recursive
-as well.  This isolates the remaining computability work to the two actual
-constraint-fragment translations. -/
-theorem primrec_finiteTestDNF_of_components
+/-- Once the one-item translator is primitive recursive, the root formula,
+finite stream, and DNF serialization give a primitive-recursive prefix
+compiler. -/
+theorem primrec_finiteTestDNF_of_itemTranslator
     (axioms : Nat → PrenexAxiom) (phi : PositiveExistential)
-    (hroot : Primrec rootQueryFormula)
     (hitem : Primrec fun item : TestItem => testItemFormula axioms phi item) :
     Primrec fun p : IntegerPolynomialQuery × Nat =>
       finiteTestDNF axioms phi p.1 p.2 := by
@@ -1824,7 +2290,7 @@ theorem primrec_finiteTestDNF_of_components
     Primrec.list_range.comp (Primrec.snd.comp Primrec.id)
   have hrootDnf : Primrec fun p : IntegerPolynomialQuery × Nat =>
       toDNF (rootQueryFormula p.1) :=
-    primrec_toDNF.comp (hroot.comp Primrec.fst)
+    primrec_toDNF.comp (primrec_rootQueryFormula.comp Primrec.fst)
   have hstepFn : Primrec fun z : (IntegerPolynomialQuery × Nat) ×
       (ConstraintSystem × Nat) => andDNF z.2.1
         (toDNF (testItemFormula axioms phi (decodeTestItem z.2.2))) :=
@@ -1842,22 +2308,20 @@ theorem primrec_finiteTestDNF_of_components
     Primrec.list_foldl hindices hrootDnf hstep
   exact hfold.of_eq fun _ => rfl
 
-theorem primrec_makeFiniteTestFormula_of_components
+theorem primrec_makeFiniteTestFormula_of_itemTranslator
     (axioms : Nat → PrenexAxiom) (phi : PositiveExistential)
-    (hroot : Primrec rootQueryFormula)
     (hitem : Primrec fun item : TestItem => testItemFormula axioms phi item) :
     Primrec fun p : IntegerPolynomialQuery × Nat =>
       makeFiniteTestFormula axioms phi p.1 p.2 := by
   unfold makeFiniteTestFormula
   exact primrec_dnfFormula.comp
-    (primrec_finiteTestDNF_of_components axioms phi hroot hitem)
+    (primrec_finiteTestDNF_of_itemTranslator axioms phi hitem)
 
-theorem makeFiniteTestFormula_computable_of_components
+theorem makeFiniteTestFormula_computable_of_itemTranslator
     (axioms : Nat → PrenexAxiom) (phi : PositiveExistential)
-    (hroot : Primrec rootQueryFormula)
     (hitem : Primrec fun item : TestItem => testItemFormula axioms phi item) :
     Computable₂ fun q n => makeFiniteTestFormula axioms phi q n :=
-  (primrec_makeFiniteTestFormula_of_components axioms phi hroot hitem).to_comp.to₂
+  (primrec_makeFiniteTestFormula_of_itemTranslator axioms phi hitem).to_comp.to₂
 
 /-- The `n`th finite test means the first `n` decoded constraint codes, in
 addition to the root equation.  Invalid codes decode to the dummy true

@@ -37,6 +37,14 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #check @H10RationalGroundTests.ValidQFCode
 #check @H10RationalGroundTests.ValidPrenexAxiom
 #check @H10RationalGroundTests.ValidPositiveExistential
+#check @H10RationalGroundTests.primrec_skolemTerm
+#check @H10RationalGroundTests.primrec_skolemPrefixStep
+#check @H10RationalGroundTests.primrec_skolemPrefix
+#check @H10RationalGroundTests.primrec_substituteTerm
+#check @H10RationalGroundTests.primrec_substituteQFToken
+#check @H10RationalGroundTests.rootPolynomialValue_eq_integerPolynomialValue
+#check @H10RationalGroundTests.primrec_rootPolynomial
+#check @H10RationalGroundTests.primrec_rootQueryFormula
 #check @H10RationalGroundTests.qfGroundMeaningCode_correct
 #check @H10RationalGroundTests.witnessLabel_fresh
 #check @H10RationalGroundTests.witnessLabel_injective
@@ -47,12 +55,13 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #check @H10RationalGroundTests.operationFormula_addition_semantics
 #check @H10RationalGroundTests.operationFormula_multiplication_semantics
 #check @H10RationalGroundTests.operationFormula_negation_semantics
+#check @H10RationalGroundTests.primrec_operationFormula
 #check @H10RationalGroundTests.functionCongruenceFormula_semantics
 #check @H10RationalGroundTests.testItemFormula_semantics
 #check @H10RationalGroundTests.primrec_dnfFormula
 #check @H10RationalGroundTests.primrec_decodeTestItem
-#check @H10RationalGroundTests.primrec_finiteTestDNF_of_components
-#check @H10RationalGroundTests.makeFiniteTestFormula_computable_of_components
+#check @H10RationalGroundTests.primrec_finiteTestDNF_of_itemTranslator
+#check @H10RationalGroundTests.makeFiniteTestFormula_computable_of_itemTranslator
 #check @H10RationalGroundTests.finiteTestDNF_satisfies_iff_of_semantic_translators
 #check @H10RationalGroundTests.makeFiniteTestFormula_correct
 #check @H10RationalGroundTests.finiteTestSolvable_computable_of_h10Q
@@ -84,16 +93,25 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #print axioms H10RationalGroundTests.qfGroundMeaningCode_correct
 #print axioms H10RationalGroundTests.positiveExistentialFormula_semantics
 #print axioms H10RationalGroundTests.poleParityFormula
+#print axioms H10RationalGroundTests.primrec_skolemTerm
+#print axioms H10RationalGroundTests.primrec_skolemPrefixStep
+#print axioms H10RationalGroundTests.primrec_skolemPrefix
+#print axioms H10RationalGroundTests.primrec_substituteTerm
+#print axioms H10RationalGroundTests.primrec_substituteQFToken
+#print axioms H10RationalGroundTests.rootPolynomialValue_eq_integerPolynomialValue
+#print axioms H10RationalGroundTests.primrec_rootPolynomial
+#print axioms H10RationalGroundTests.primrec_rootQueryFormula
 #print axioms H10RationalGroundTests.rootQueryFormula_correct
 #print axioms H10RationalGroundTests.rootQueryFormula_semantics
 #print axioms H10RationalGroundTests.operationFormula_addition_semantics
 #print axioms H10RationalGroundTests.operationFormula_multiplication_semantics
 #print axioms H10RationalGroundTests.operationFormula_negation_semantics
+#print axioms H10RationalGroundTests.primrec_operationFormula
 #print axioms H10RationalGroundTests.functionCongruenceFormula_semantics
 #print axioms H10RationalGroundTests.testItemFormula_semantics
 #print axioms H10RationalGroundTests.primrec_dnfFormula
-#print axioms H10RationalGroundTests.primrec_finiteTestDNF_of_components
-#print axioms H10RationalGroundTests.makeFiniteTestFormula_computable_of_components
+#print axioms H10RationalGroundTests.primrec_finiteTestDNF_of_itemTranslator
+#print axioms H10RationalGroundTests.makeFiniteTestFormula_computable_of_itemTranslator
 #print axioms H10RationalGroundTests.finiteTestDNF_satisfies_iff_of_semantic_translators
 #print axioms H10RationalGroundTests.makeFiniteTestFormula_correct
 #print axioms H10RationalGroundTests.finiteTestSolvable_computable_of_h10Q

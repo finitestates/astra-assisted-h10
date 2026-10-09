@@ -131,16 +131,22 @@ yet proved.
 | `qfGroundMeaningCode_correct` | The independent quantifier-free interpreter agrees with the formula translator. |
 | `positiveExistentialFormula_semantics` | Formula variable renaming maps the input and fresh witness variables to their ground assignment labels. |
 | `rootQueryFormula_correct` | The initial root constraint is equivalent to the finite-arity integer-query predicate. |
+| `primrec_rootPolynomial` / `primrec_rootQueryFormula` | The query-specific root constraint is primitive recursive. Natural coefficient scales are compiled by repeating terms, avoiding encoded integer multiplication. |
+| `primrec_operationFormula` | Addition, multiplication, and negation item formulas are primitive recursive, including the total true fallback for malformed tag/arity pairs. |
+| `primrec_skolemTerm` / `primrec_skolemPrefix` / `primrec_substituteTerm` / `primrec_substituteQFToken` | The Skolem-term and prefix builders, and both substitution steps, are primitive recursive. |
 | `testItemFormula_semantics` | Every item tag's generated formula agrees with its independent pointwise semantics. |
 | `makeFiniteTestFormula_correct` | The generated finite-test formula is satisfiable exactly when the independently defined finite test is solvable. |
-| `makeFiniteTestFormula_computable_of_components` | The finite stream and DNF serializer are computable when the root and one-item translators are primitive recursive. |
+| `makeFiniteTestFormula_computable_of_itemTranslator` | The indexed finite-test formula is computable when its one-item translator is primitive recursive; the root translator is proved primitive recursive. |
 | `finiteTestSolvable_computable_of_h10Q` | The indexed tests are decidable relative to the H10(Q) oracle, provided the instantiated formula generator is computable. |
 
 The compiler is generic in its recursively coded axiom scheme and its
 positive-existential condition. The operation, congruence, universal-instance,
-and witness translators are semantically proved, but primitive recursiveness
-of the root and one-item translators is still a premise to the component
-computability theorem. The paper's recursive ring theory is not instantiated.
+and witness translators are semantically proved. The root constraint, ring
+operation translator, and Skolem-term, prefix, and substitution components are
+primitive recursive. Primitive recursiveness of the complete `skolemizeAxiom`,
+QF translation, and the congruence, universal-instance, and witness formula
+translators remains open, so the one-item translator is not yet proved
+primitive recursive. The paper's recursive ring theory is not instantiated.
 The code contains `poleParityFormula choices`, which constructs the shape of
 the Section 3 positive-existential formula from rational coefficient codes
 for the pairs `(m, m_d)`. The pinned paper gives no numerical entries for its
