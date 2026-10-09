@@ -30,7 +30,7 @@ h10_allowed_axioms="propext,Classical.choice,Quot.sound"
 
 # axiom-audit accepts one module root per invocation. These module names are
 # intentionally top-level, so audit each proof module separately.
-for h10_module in FiniteTests RationalQueryCompiler IntegerQueryAdapter BooleanFormula; do
+for h10_module in FiniteTests RationalQueryCompiler IntegerQueryAdapter BooleanFormula FiniteGroundTests; do
   echo "::group::Axiom audit: $h10_module"
   lake env "$h10_audit_bin" --root "$h10_module" --allow "$h10_allowed_axioms"
   echo "::endgroup::"

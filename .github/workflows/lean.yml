@@ -34,8 +34,8 @@ jobs:
           build: true
           use-mathlib-cache: true
           leanchecker: true
-          # These are the four modules containing project proof declarations.
-          leanchecker-args: FiniteTests RationalQueryCompiler IntegerQueryAdapter BooleanFormula
+          # These are the modules containing project proof declarations.
+          leanchecker-args: FiniteTests RationalQueryCompiler IntegerQueryAdapter BooleanFormula FiniteGroundTests
 
       - name: Audit axioms in every proof module
         env:

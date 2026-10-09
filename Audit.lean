@@ -4,6 +4,7 @@ import FiniteTests
 import RationalQueryCompiler
 import IntegerQueryAdapter
 import BooleanFormula
+import FiniteGroundTests
 
 /- Inspect theorem types as well as axioms: hypotheses remain hypotheses even
 when the axiom report contains only Lean's standard foundational axioms. -/
@@ -26,6 +27,36 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #check @H10RationalFormula.primrec_toDNF
 #check @H10RationalFormula.formulaSatisfies_computable_of_h10Q
 #check @H10RationalFormula.indexed_formulaSatisfies_computable_of_h10Q
+#check @H10RationalGroundTests.primrec_applicationTerm
+#check @H10RationalGroundTests.applicationTerm_injective
+#check @H10RationalGroundTests.applicationTerm_gt_arg
+#check @H10RationalGroundTests.applicationTerm_not_arg
+#check @H10RationalGroundTests.primrec_evaluateTermCode
+#check @H10RationalGroundTests.validTermCode
+#check @H10RationalGroundTests.ValidTermCode
+#check @H10RationalGroundTests.ValidQFCode
+#check @H10RationalGroundTests.ValidPrenexAxiom
+#check @H10RationalGroundTests.ValidPositiveExistential
+#check @H10RationalGroundTests.qfGroundMeaningCode_correct
+#check @H10RationalGroundTests.witnessLabel_fresh
+#check @H10RationalGroundTests.witnessLabel_injective
+#check @H10RationalGroundTests.positiveExistentialFormula_semantics
+#check @H10RationalGroundTests.poleParityFormula
+#check @H10RationalGroundTests.rootQueryFormula_correct
+#check @H10RationalGroundTests.rootQueryFormula_semantics
+#check @H10RationalGroundTests.operationFormula_addition_semantics
+#check @H10RationalGroundTests.operationFormula_multiplication_semantics
+#check @H10RationalGroundTests.operationFormula_negation_semantics
+#check @H10RationalGroundTests.functionCongruenceFormula_semantics
+#check @H10RationalGroundTests.testItemFormula_semantics
+#check @H10RationalGroundTests.primrec_dnfFormula
+#check @H10RationalGroundTests.primrec_decodeTestItem
+#check @H10RationalGroundTests.primrec_finiteTestDNF_of_components
+#check @H10RationalGroundTests.makeFiniteTestFormula_computable_of_components
+#check @H10RationalGroundTests.finiteTestDNF_satisfies_iff_of_semantic_translators
+#check @H10RationalGroundTests.makeFiniteTestFormula_correct
+#check @H10RationalGroundTests.finiteTestSolvable_computable_of_h10Q
+#check @H10RationalGroundTests.everyTestItem_isEnumerated
 #print axioms H10FiniteTests.re_exists_nat_of_computable
 #print axioms H10FiniteTests.failure_iff_not
 #print axioms H10FiniteTests.complement_re_of_tests
@@ -46,3 +77,23 @@ when the axiom report contains only Lean's standard foundational axioms. -/
 #print axioms H10RationalFormula.primrec_toDNF
 #print axioms H10RationalFormula.formulaSatisfies_computable_of_h10Q
 #print axioms H10RationalFormula.indexed_formulaSatisfies_computable_of_h10Q
+#print axioms H10RationalGroundTests.primrec_evaluateTermCode
+#print axioms H10RationalGroundTests.applicationTerm_injective
+#print axioms H10RationalGroundTests.applicationTerm_gt_arg
+#print axioms H10RationalGroundTests.applicationTerm_not_arg
+#print axioms H10RationalGroundTests.qfGroundMeaningCode_correct
+#print axioms H10RationalGroundTests.positiveExistentialFormula_semantics
+#print axioms H10RationalGroundTests.poleParityFormula
+#print axioms H10RationalGroundTests.rootQueryFormula_correct
+#print axioms H10RationalGroundTests.rootQueryFormula_semantics
+#print axioms H10RationalGroundTests.operationFormula_addition_semantics
+#print axioms H10RationalGroundTests.operationFormula_multiplication_semantics
+#print axioms H10RationalGroundTests.operationFormula_negation_semantics
+#print axioms H10RationalGroundTests.functionCongruenceFormula_semantics
+#print axioms H10RationalGroundTests.testItemFormula_semantics
+#print axioms H10RationalGroundTests.primrec_dnfFormula
+#print axioms H10RationalGroundTests.primrec_finiteTestDNF_of_components
+#print axioms H10RationalGroundTests.makeFiniteTestFormula_computable_of_components
+#print axioms H10RationalGroundTests.finiteTestDNF_satisfies_iff_of_semantic_translators
+#print axioms H10RationalGroundTests.makeFiniteTestFormula_correct
+#print axioms H10RationalGroundTests.finiteTestSolvable_computable_of_h10Q

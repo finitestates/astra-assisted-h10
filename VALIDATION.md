@@ -1,49 +1,55 @@
 # Validation record
 
-The current validation was run locally on 2026-10-08 after adding the Boolean
-formula front end. Before implementation, the same verification command passed
-on the original Lean sources under the same pinned Lean toolchain; the supplied
-`MANIFEST.md` edit was already present in the working tree.
+The current validation was run locally on 2026-10-08 after proving the
+independent finite-test semantics and adding the associated theorem and axiom
+audit entries. The supplied `MANIFEST.md` changes were already in the working
+tree before validation.
 
 ## Current checks
 
-- Exact command: `PATH=/tmp/h10-elan/bin:$PATH bash verify.sh` (exit code 0).
-- The mathlib cache was already populated: the cache command downloaded no
-  files, and 841 files were already decompressed. This run therefore needed no
-  network transfer; a fresh environment may need network access for Lean,
-  dependencies, or cache files.
-- `lake build`: exit code 0; Lake completed 1382 jobs, including
-  `BooleanFormula` and the updated `Audit`.
-- `Audit.lean` printed the coefficient-to-integer denotation, positive global
-  denominator, root-preservation equivalence, finite-support bounds, primitive
-  recursive normalization, formula-to-DNF correctness, primitive recursive
-  formula conversion, and conditional formula and indexed-formula oracle
-  theorem types. It also printed their axiom dependencies.
-- `lake env leanchecker FiniteTests`,
-  `lake env leanchecker RationalQueryCompiler`,
-  `lake env leanchecker IntegerQueryAdapter`, and
-  `lake env leanchecker BooleanFormula`: all exited 0 with empty output. These
-  replay the named project modules through Lean's kernel; they are not
-  independent proof checkers and were not run with `--fresh` over all imported
-  declarations.
-- No project Lean file contains a `sorry`, custom `axiom`, or `unsafe`
-  declaration. The audited results depend on `[propext, Classical.choice,
-  Quot.sound]`, mathlib's standard foundational axioms.
+- Exact command: `PATH=/tmp/h10-elan/bin:$PATH bash verify.sh` (exit code 0,
+  2026-10-08). The mathlib cache was populated: no files were downloaded and
+  841 files were already decompressed. `lake build` completed all 1,384 jobs;
+  the script then ran `Audit.lean` and `leanchecker` on all five proof modules.
+- `Audit.lean` printed theorem types and axiom dependencies for the independent
+  QF interpreter, positive-existential assignment semantics, root semantics,
+  each ring operation, function congruence, the all-tags item semantics
+  theorem, the finite-DNF semantic equivalence, and
+  `makeFiniteTestFormula_correct`. It also confirms that
+  `finiteTestSolvable_computable_of_h10Q` still assumes computability of the
+  instantiated formula generator and the integer H10(Q) root oracle.
+- `lake env leanchecker FiniteTests`, `RationalQueryCompiler`,
+  `IntegerQueryAdapter`, `BooleanFormula`, and `FiniteGroundTests` all exited 0
+  through `verify.sh`. These replay the named project modules through Lean's
+  kernel; they are not independent proof checkers and were not run with
+  `--fresh` over all imported declarations.
+- Exact command: `PATH=/tmp/h10-elan/bin:$PATH bash ci/audit-modules.sh` (exit
+  code 0). The pinned `axiom-audit` tool audited 25, 114, 111, 101, and 322
+  declarations in `FiniteTests`, `RationalQueryCompiler`,
+  `IntegerQueryAdapter`, `BooleanFormula`, and `FiniteGroundTests`,
+  respectively. All stayed within `[propext, Classical.choice, Quot.sound]`.
+- `rg -n '\bsorry\b|^\s*axiom\b|\bunsafe\b' --glob '*.lean' .` found no
+  matches. `git diff --check` exited 0.
+- Lean emitted unused-simp-argument and unused-variable warnings in
+  `FiniteGroundTests.lean`; there were no build or kernel-check errors.
 
-The formula oracle theorems retain
-`ComputablePred IntegerPolynomialHasRationalRoot` as an explicit hypothesis.
-The adapter does not construct an H10(Q) decision algorithm, nor does this
-slice construct the paper's indexed test generator. The full verification used
-the existing Lake outputs; it did not run `lake clean` first.
+The finite-test correctness theorem now targets an independent semantic
+predicate, and no longer assumes a per-item translator theorem. The generic
+root and item translator primitive-recursiveness proofs are still missing, as
+are the recursive ring-theory input and the proof that finite multiplier lists
+with the Section 3 coverage properties exist. The pinned paper lists no
+numerical multiplier table. No H10(Q) decision algorithm or arithmetic
+`passes`/`complete` proof is claimed. Verification used the existing Lake
+outputs; it did not run `lake clean` first.
 
 ## GitHub Actions coverage
 
 `.github/workflows/lean.yml` builds the project, runs `leanchecker` on
-`FiniteTests`, `RationalQueryCompiler`, `IntegerQueryAdapter`, and
-`BooleanFormula`, then displays the theorem and axiom report from `Audit.lean`.
-`ci/audit-modules.sh` runs the pinned `axiom-audit` tool once for each of those
-four top-level proof modules. Each run allows only `propext`,
-`Classical.choice`, and `Quot.sound`. `Audit` is built and executed as a report
+`FiniteTests`, `RationalQueryCompiler`, `IntegerQueryAdapter`,
+`BooleanFormula`, and `FiniteGroundTests`, then displays the theorem and axiom
+report from `Audit.lean`. `ci/audit-modules.sh` runs the pinned `axiom-audit`
+tool once for each of those five top-level proof modules. Each run allows only
+`propext`, `Classical.choice`, and `Quot.sound`. `Audit` is built and executed as a report
 module; it contains no proof declarations of its own.
 
 ## Pinned software

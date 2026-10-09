@@ -1,8 +1,9 @@
 # A checked final reduction for the H10(Q) project
 
-**Status: the finite rational-query compiler, finite-arity integer-query
-adapter, Boolean formula front end, and conditional reductions compile
-successfully. The paper's arithmetic construction is not formalized here.**
+**Status: the generic finite-ground-test translation now has an independent
+semantics and pointwise correctness proofs for every item tag. The paper's
+recursive axiom scheme, multiplier coverage proof, and arithmetic construction
+are not formalized here.**
 
 This is a small formalization of the concluding argument in the September 24,
 2026 paper *Hilbert's tenth problem over the rational numbers*, hosted in
@@ -100,9 +101,55 @@ disjunction.
 | `indexed_formulaSatisfies_computable_of_h10Q` | The same conditional decision applies uniformly to a computable indexed formula generator. |
 
 These results reuse the current atom, DNF, and integer-query encodings. They
-do not construct an H10(Q) algorithm or the paper's indexed test generator.
-The next implementation slice is the paper-specific finite ground-test
-generator; see [MANIFEST.md](MANIFEST.md) for its scope and acceptance criteria.
+do not construct an H10(Q) algorithm.
+
+The file [FiniteGroundTests.lean](FiniteGroundTests.lean) adds a generic
+finite ground-test compiler. Terms and quantifier-free formulas use explicit
+postfix codes; function symbols carry a namespace, name, and arity; prenex
+axioms are a coded quantifier prefix and matrix. Its Skolemizer makes each
+existential variable a function of the preceding universal variables. Ground
+term values and positive-existential witnesses use disjoint natural-number
+labels. The finite-test stream decodes one explicitly coded constraint item
+per index, and test `n` adds the first `n` items to the root equation. Its item
+tags cover zero, one, ring operations, function congruence, universal axiom
+instances, and positive-existential witnesses. An independent assignment-based
+semantics is defined for the root and every item, and the item translator is
+proved correct pointwise. Positive-existential witnesses receive fresh labels.
+Every coded item occurs in the stream. Application codes are injective in their
+symbol and argument list and are larger than each of their argument codes.
+The root formula is proved equivalent to the adapter's finite integer-
+polynomial root predicate.
+The validity predicates are defined, but the paper's concrete encodings have
+not been proved valid. Universal-item correctness interprets the output of the
+formal Skolemizer; preservation of the original prenex axiom meaning is not
+yet proved.
+
+| Lean declaration | Meaning |
+| --- | --- |
+| `primrec_evaluateTermCode` | The total postfix term evaluator is primitive recursive. |
+| `witnessLabel_fresh` / `witnessLabel_injective` | Witness variables do not collide with ground-term variables, and witness labels are pairwise injective. |
+| `qfGroundMeaningCode_correct` | The independent quantifier-free interpreter agrees with the formula translator. |
+| `positiveExistentialFormula_semantics` | Formula variable renaming maps the input and fresh witness variables to their ground assignment labels. |
+| `rootQueryFormula_correct` | The initial root constraint is equivalent to the finite-arity integer-query predicate. |
+| `testItemFormula_semantics` | Every item tag's generated formula agrees with its independent pointwise semantics. |
+| `makeFiniteTestFormula_correct` | The generated finite-test formula is satisfiable exactly when the independently defined finite test is solvable. |
+| `makeFiniteTestFormula_computable_of_components` | The finite stream and DNF serializer are computable when the root and one-item translators are primitive recursive. |
+| `finiteTestSolvable_computable_of_h10Q` | The indexed tests are decidable relative to the H10(Q) oracle, provided the instantiated formula generator is computable. |
+
+The compiler is generic in its recursively coded axiom scheme and its
+positive-existential condition. The operation, congruence, universal-instance,
+and witness translators are semantically proved, but primitive recursiveness
+of the root and one-item translators is still a premise to the component
+computability theorem. The paper's recursive ring theory is not instantiated.
+The code contains `poleParityFormula choices`, which constructs the shape of
+the Section 3 positive-existential formula from rational coefficient codes
+for the pairs `(m, m_d)`. The pinned paper gives no numerical entries for its
+finite lists `M` and `D_m`; it proves their existence by weak approximation.
+The code does not yet formalize the coverage properties or prove that suitable
+finite lists exist. See [Section 3](https://github.com/openai/math/blob/fd4aeeb2ee4fc729c18d98444fed42fd0529eeeb/preprints/Hilberts-tenth-problem-over-the-rational-numbers-September-24-2026/build/sections/03-parity.tex#L106-L132)
+and [MANIFEST.md](MANIFEST.md) for the remaining work. The compiler therefore
+does not yet instantiate `FiniteTestInterface` for the paper or complete the
+H10(Q) argument.
 
 | Lean declaration | Meaning |
 | --- | --- |
@@ -161,9 +208,9 @@ bash verify.sh
 ```
 
 The script fetches the relevant mathlib cache, builds `FiniteTests`,
-`RationalQueryCompiler`, `IntegerQueryAdapter`, `BooleanFormula`, and `Audit`,
-prints theorem types and axiom dependencies, and replays the project proof
-modules through Lean's kernel.
+`RationalQueryCompiler`, `IntegerQueryAdapter`, `BooleanFormula`,
+`FiniteGroundTests`, and `Audit`, prints theorem types and axiom dependencies,
+and replays the project proof modules through Lean's kernel.
 It requires network access when dependencies or cache files are absent.
 
 Pinned versions:
